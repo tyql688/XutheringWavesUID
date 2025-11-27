@@ -90,4 +90,4 @@ async def char_alias_list(char_name: str):
         *alias_list,
     ]
 
-    return "\n".join(res)
+    return "，".join(res)

@@ -17,6 +17,7 @@ from ..utils.name_convert import (
 )
 from ..utils.resource.constant import SONATA_FIRST_ID, SPECIAL_CHAR
 from ..utils.waves_api import waves_api
+from ..utils.char_info_utils import PATTERN
 
 phantom_main_value = [
     {"name": "攻击", "values": ["18%", "30%", "33%"]},
@@ -315,7 +316,7 @@ def parse_phantom_position(
     content: str,
 ) -> list[PhantomInfo]:
     # 修改正则表达式，使位置转换部分变为可选
-    position_pattern = r"(?:(\d+))?([\u4e00-\u9fa5]+)(?:\s*(\d)到(\d))*"
+    position_pattern = rf"(?:(\d+))?({PATTERN})(?:\s*(\d)到(\d))*"
     position_matches = re.finditer(position_pattern, content)
     results = []
 

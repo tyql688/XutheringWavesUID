@@ -4,7 +4,7 @@ from PIL import Image
 
 from gsuid_core.utils.download_resource.download_file import download
 
-from ..resource.RESOURCE_PATH import (
+from .RESOURCE_PATH import (
     FETTER_PATH,
     MATERIAL_PATH,
     PHANTOM_PATH,

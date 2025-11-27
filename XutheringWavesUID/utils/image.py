@@ -18,7 +18,7 @@ from gsuid_core.models import Event
 from gsuid_core.utils.image.image_tools import crop_center_img
 from gsuid_core.utils.image.utils import sget
 
-from .resource.RESOURCE_PATH import (
+from ..utils.resource.RESOURCE_PATH import (
     AVATAR_PATH,
     CUSTOM_CARD_PATH,
     CUSTOM_MR_CARD_PATH,

@@ -6,6 +6,7 @@ from gsuid_core.sv import SV, get_plugin_available_prefix
 
 from ..utils.database.models import WavesBind
 from ..utils.name_convert import alias_to_char_name
+from ..utils.char_info_utils import PATTERN
 from .set_config import set_waves_user_value
 from .wutheringwaves_config import WutheringWavesConfig
 
@@ -36,7 +37,7 @@ async def send_config_ev(bot: Bot, ev: Event):
                 f"当前特征码：{uid}\n{ERROR_CODE[WAVES_CODE_102]}", at_sender
             )
         func = "体力背景"
-        value = "".join(re.findall("[\u4e00-\u9fa5]", ev.text.replace(func, "")))
+        value = "".join(re.findall({PATTERN}, ev.text.replace(func, "")))
         if not value:
             return await bot.send("[鸣潮] 请输入正确的角色名...\n", at_sender)
         char_name = alias_to_char_name(value)

@@ -6,7 +6,7 @@ from msgspec import json as msgjson
 
 from gsuid_core.logger import logger
 
-from .resource.RESOURCE_PATH import (
+from ..utils.resource.RESOURCE_PATH import (
     CUSTOM_CHAR_ALIAS_PATH,
     CUSTOM_ECHO_ALIAS_PATH,
     CUSTOM_SONATA_ALIAS_PATH,

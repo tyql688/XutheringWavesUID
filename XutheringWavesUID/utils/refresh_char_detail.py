@@ -13,7 +13,7 @@ from ..utils.expression_ctx import WavesCharRank, get_waves_char_rank
 from ..utils.hint import error_reply
 from ..utils.queues.const import QUEUE_SCORE_RANK
 from ..utils.queues.queues import push_item
-from .resource.RESOURCE_PATH import PLAYER_PATH
+from ..utils.resource.RESOURCE_PATH import PLAYER_PATH
 from ..utils.util import get_version
 from ..utils.waves_api import waves_api
 from ..wutheringwaves_config import WutheringWavesConfig
