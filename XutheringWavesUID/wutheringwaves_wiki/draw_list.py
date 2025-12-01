@@ -2,6 +2,7 @@ import copy
 import textwrap
 from pathlib import Path
 from collections import defaultdict
+from typing import Any
 from PIL import Image, ImageDraw
 
 from gsuid_core.utils.image.convert import convert_img
@@ -39,7 +40,7 @@ async def draw_weapon_list(weapon_type: str):
         return "[鸣潮][武器列表]暂无数据"
         
     # 武器类型映射
-    weapon_type_map = {
+    weapon_type_map: dict[int, str] = {
         1: "长刃",
         2: "迅刀",
         3: "佩枪",
@@ -53,14 +54,14 @@ async def draw_weapon_list(weapon_type: str):
     logger.debug(f"正在处理武器列表：{reverse_type_map}")
     
     # 按武器类型分组收集武器数据
-    weapon_groups = defaultdict(list)
+    weapon_groups: defaultdict[int, list[dict[str, Any]]] = defaultdict(list)
     target_type = reverse_type_map.get(weapon_type)
     logger.debug(f"成功处理：{target_type}")
     
     for weapon_id, data in weapon_id_data.items():
         name = data.get("name", "未知武器")
         star_level = data.get("starLevel", 0)
-        w_type = data.get("type", 0)  # 注意：避免与参数同名冲突
+        w_type: Any = data.get("type", 0)  # 注意：避免与参数同名冲突
         effect_name = data.get("effectName", "")
         
         # 如果找到目标类型，只收集该类型武器
@@ -82,7 +83,7 @@ async def draw_weapon_list(weapon_type: str):
             })
     
     # 按类型从小到大排序
-    sorted_groups = sorted(weapon_groups.items(), key=lambda x: x[0])
+    sorted_groups= sorted(weapon_groups.items(), key=lambda x: x[0])
     
     # 每行武器数量（单类型4列，全部类型9列）
     weapons_per_row = 9 if target_type is None else 4
@@ -109,9 +110,9 @@ async def draw_weapon_list(weapon_type: str):
     # 绘制武器效果名（灰色）y_offset += 20
     
     # 按武器类型遍历所有分组
-    for weapon_type, weapons in sorted_groups:
+    for wtype, weapons in sorted_groups:
         # 获取类型名称
-        type_name = weapon_type_map.get(weapon_type, f"未知类型{weapon_type}")
+        type_name = weapon_type_map.get(wtype, f"未知类型{wtype}")
         
         # 绘制类型标题
         draw.text((50, y_offset), type_name, font=waves_font_24, fill=SPECIAL_GOLD)

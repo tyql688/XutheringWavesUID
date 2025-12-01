@@ -286,7 +286,7 @@ async def get_qq_avatar(
         avatar_url = f"http://q1.qlogo.cn/g?b=qq&nk={qid}&s={size}"
     elif avatar_url is None:
         # avatar_url = f"https://q1.qlogo.cn/g?b=qq&nk=3399214199&s={size}"
-        return None
+        return Image.new("RGBA", (size, size), (255, 255, 255, 0))
     char_pic = Image.open(BytesIO((await sget(avatar_url)).content)).convert("RGBA")
     return char_pic
 

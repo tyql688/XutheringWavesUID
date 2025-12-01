@@ -208,7 +208,7 @@ async def _draw_stamina_img(ev: Event, valid: Dict) -> Image.Image:
         target_w, target_h = 1150, 850
         ratio = max(target_w / bg_w, target_h / bg_h)
         new_size = (int(bg_w * ratio), int(bg_h * ratio))
-        pile = pile.resize(new_size, Image.LANCZOS)
+        pile = pile.resize(new_size, Image.Resampling.LANCZOS)
         
         left = (pile.width - target_w) // 2
         top = (pile.height - target_h) // 2

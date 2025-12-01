@@ -19,7 +19,7 @@ async def send_rank_card(bot: Bot, ev: Event):
     if not ev.group_id:
         return await bot.send("请在群聊中使用")
     
-    char = ev.regex_dict.get("char")
+    char: str = ev.regex_dict.get("char") or ""
 
     rank_type = "伤害"
     if "评分" in char:
@@ -41,7 +41,7 @@ async def send_rank_card(bot: Bot, ev: Event):
 )
 async def send_all_rank_card(bot: Bot, ev: Event):
     
-    char = ev.regex_dict.get("char")
+    char = ev.regex_dict.get("char") or ""
     pages = ev.regex_dict.get("pages")
 
     if pages:

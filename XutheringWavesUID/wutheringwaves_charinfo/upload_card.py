@@ -1,24 +1,27 @@
-import asyncio
-import hashlib
-import shutil
+import os
 import ssl
 import time
-import os
-from typing import List, Optional
+import shutil
+import asyncio
+import hashlib
+from typing import Any, List, Optional
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import httpx
-
 from gsuid_core.bot import Bot
-from gsuid_core.logger import logger
 from gsuid_core.models import Event
-from gsuid_core.utils.download_resource.download_file import download
+from gsuid_core.logger import logger
 from gsuid_core.utils.image.convert import convert_img
+from gsuid_core.utils.download_resource.download_file import download
 
 from ..utils.image import compress_to_webp
-from ..utils.name_convert import alias_to_char_name, char_name_to_char_id
 from ..utils.resource.constant import SPECIAL_CHAR, SPECIAL_CHAR_ID
-from ..utils.resource.RESOURCE_PATH import CUSTOM_CARD_PATH, CUSTOM_MR_CARD_PATH, CUSTOM_MR_BG_PATH
+from ..utils.name_convert import alias_to_char_name, char_name_to_char_id
+from ..utils.resource.RESOURCE_PATH import (
+    CUSTOM_CARD_PATH,
+    CUSTOM_MR_BG_PATH,
+    CUSTOM_MR_CARD_PATH,
+)
 
 CUSTOM_PATH_MAP = {
     "card": CUSTOM_CARD_PATH,
@@ -151,9 +154,19 @@ async def get_custom_card_list(bot: Bot, ev: Event, char: str, target_type: str 
         imgs.append(f"{char}{target_type}图id : {hash_id}")
         imgs.append(img)
 
-    # imgs 5个一组
-    for i in range(0, len(imgs), 10):
-        send = imgs[i : i + 10]
+    # imgs 10个一组
+    from ..wutheringwaves_config import WutheringWavesConfig
+    card_num = WutheringWavesConfig.get_config("CharCardNum").data
+    # 转数字
+    if card_num is None:
+        card_num = 5
+    else:
+        card_num = int(card_num)
+    for i in range(0, len(imgs), card_num*2):
+        if len(imgs) < i+card_num*2:
+            send: list[Any] = imgs[i : len(imgs)]
+        else:
+            send = imgs[i : i+card_num*2]   
         await bot.send(send)
         await asyncio.sleep(0.5)
 
@@ -220,7 +233,10 @@ async def delete_all_custom_card(bot: Bot, ev: Event, char: str, target_type: st
 
 async def compress_all_custom_card(bot: Bot, ev: Event):
     count = 0
-    use_cores = max(os.cpu_count() - 2, 1) # 避免2c服务器卡死
+    cpus = os.cpu_count()
+    if cpus is None:
+        cpus = 1
+    use_cores = max(cpus - 2, 1) # 避免2c服务器卡死
     await bot.send(f"[鸣潮] 开始压缩面板、体力、背景图, 使用 {use_cores} 核心")
     
     task_list = []
