@@ -173,4 +173,10 @@ CONFIG_DEFAULT: Dict[str, GSC] = {
         "验证码提供方appkey",
         "",
     ),
+    "CharCardNum": GsIntConfig(
+        "查看面板图列表，单次转发的图片数量",
+        "查看面板图列表，单次转发的图片数量",
+        5,
+        20,
+    )
 }

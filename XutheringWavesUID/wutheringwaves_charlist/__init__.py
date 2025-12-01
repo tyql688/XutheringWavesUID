@@ -38,7 +38,7 @@ async def send_char_list_msg_new(bot: Bot, ev: Event):
             return await bot.send("请输入正确的查询特征码")
 
     user_id = ruser_id(ev)
-    user_waves_id = await WavesBind.get_uid_by_game(user_id, ev.bot_id)
+    user_waves_id = await WavesBind.get_uid_by_game(user_id, ev.bot_id) or ""
     if not query_waves_id:
         query_waves_id = user_waves_id
 

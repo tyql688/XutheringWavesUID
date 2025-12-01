@@ -186,12 +186,8 @@ def format_with_defaults(desc: str, params: List[Any], default_value: str = "N/A
     return desc.format(*params_list)
 
 
-def get_version(dynamic: bool = False, **kwargs):
+def get_version(**kwargs):
     from ..version import XutheringWavesUID_version
-    if dynamic:
-        from ..utils.safety import generate_dynamic_version
-        dynamic_version = generate_dynamic_version(**kwargs)
-        return XutheringWavesUID_version + dynamic_version
 
     return XutheringWavesUID_version
 

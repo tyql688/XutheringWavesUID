@@ -39,7 +39,7 @@ async def get_base_header(devCode: Optional[str] = None):
     return header
 
 
-async def get_community_header():
+async def get_community_header() -> dict[str, str]:
     devCode = generate_random_string()
     header = await get_base_header(devCode)
     header["source"] = "h5"

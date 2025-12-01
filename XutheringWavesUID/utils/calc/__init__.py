@@ -56,7 +56,7 @@ class WuWaCalc(object):
         # 声骸面板数据
         self.phantom_card = {}
         # 角色评分使用
-        self.calc_temp = None
+        self.calc_temp: dict[Any, Any] = {}
         # 角色面板数据
         self.role_card = {}
         # attr

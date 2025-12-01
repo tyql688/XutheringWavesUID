@@ -48,7 +48,7 @@ async def upload_char_img(bot: Bot, ev: Event):
     char = ev.regex_dict.get("char")
     if not char:
         return
-    await upload_custom_card(bot, ev, char, target_type=TYPE_MAP.get(ev.regex_dict.get("type"), "card"))
+    await upload_custom_card(bot, ev, char, target_type=TYPE_MAP.get(ev.regex_dict.get("type") or "", "card"))
 
 
 @waves_char_card_list.on_regex(rf"^(?P<char>{PATTERN})(?P<type>面板|面包|🍞|体力|背景)图列表$", block=True)
@@ -56,7 +56,7 @@ async def get_char_card_list(bot: Bot, ev: Event):
     char = ev.regex_dict.get("char")
     if not char:
         return
-    await get_custom_card_list(bot, ev, char, target_type=TYPE_MAP.get(ev.regex_dict.get("type"), "card"))
+    await get_custom_card_list(bot, ev, char, target_type=TYPE_MAP.get(ev.regex_dict.get("type") or "", "card"))
 
 
 @waves_delete_char_card.on_regex(
@@ -67,7 +67,7 @@ async def delete_char_card(bot: Bot, ev: Event):
     hash_id = ev.regex_dict.get("hash_id")
     if not char or not hash_id:
         return
-    await delete_custom_card(bot, ev, char, hash_id, target_type=TYPE_MAP.get(ev.regex_dict.get("type"), "card"))
+    await delete_custom_card(bot, ev, char, hash_id, target_type=TYPE_MAP.get(ev.regex_dict.get("type") or "", "card"))
 
 
 @waves_delete_all_card.on_regex(rf"^删除全部(?P<char>{PATTERN})(?P<type>面板|面包|🍞|体力|背景)图$", block=True)
@@ -75,7 +75,7 @@ async def delete_all_char_card(bot: Bot, ev: Event):
     char = ev.regex_dict.get("char")
     if not char:
         return
-    await delete_all_custom_card(bot, ev, char, target_type=TYPE_MAP.get(ev.regex_dict.get("type"), "card"))
+    await delete_all_custom_card(bot, ev, char, target_type=TYPE_MAP.get(ev.regex_dict.get("type") or "", "card"))
 
 
 @waves_compress_card.on_fullmatch(("压缩面板图", "压缩面包图", "压缩🍞图", "压缩背景图", "压缩体力图"), block=True)

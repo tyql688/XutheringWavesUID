@@ -1,3 +1,4 @@
+from PIL.Image import Image
 from pathlib import Path
 from typing import Optional
 
@@ -106,17 +107,21 @@ async def draw_role_img(uid: str, ck: str, ev: Event):
             {"key": "中型信标", "value": f"{account_info.bigCount}", "info_block": ""},
         ]
 
-        for b in account_info.treasureBoxList:
-            base_info_value_list.append(
-                {"key": b.name, "value": f"{b.num}", "info_block": ""}
-            )
+        if account_info.treasureBoxList is not None:
+            for b in account_info.treasureBoxList:
+                if b is None:
+                    continue
+                base_info_value_list.append(
+                    {"key": b.name, "value": f"{b.num}", "info_block": ""}
+                )
 
     # 初始化基础信息栏位
     bs = Image.open(TEXT_PATH / "bs.png")
 
     # 角色信息
+    roleNum = account_info.roleNum if account_info.roleNum else 0
     roleTotalNum = (
-        account_info.roleNum if account_info.is_full else len(role_info.roleList)
+        roleNum if account_info.is_full else len(role_info.roleList)
     )
     xset = 50
     yset = 470
@@ -125,7 +130,7 @@ async def draw_role_img(uid: str, ck: str, ev: Event):
 
     w = 1000
     h = 100 + yset + 200 * int(roleTotalNum / 4 + (1 if roleTotalNum % 4 else 0))
-    card_img = get_waves_bg(w, h)
+    card_img: Image.Image = get_waves_bg(w, h)
 
     def calc_info_block(_x: int, _y: int, key: str, value: str, color_path: str = ""):
         if not color_path:
@@ -161,6 +166,8 @@ async def draw_role_img(uid: str, ck: str, ev: Event):
         if not role_detail_info_map:
             return
         char_bg = Image.open(TEXT_PATH / "char_bg.png")
+        if roleInfo.attributeName is None:
+            return
         char_attribute = await get_attribute(roleInfo.attributeName)
         char_attribute = char_attribute.resize((40, 40)).convert("RGBA")
         role_avatar = await get_square_avatar(roleInfo.roleId)
@@ -257,5 +264,5 @@ async def draw_role_img(uid: str, ck: str, ev: Event):
     card_img.paste(line2, (0, yset - 70), line2)
 
     card_img = add_footer(card_img, 600, 20)
-    card_img = await convert_img(card_img)
-    return card_img
+    card_img_byte = await convert_img(card_img)
+    return card_img_byte
