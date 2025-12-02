@@ -165,9 +165,47 @@ async def save_card_info(
     except Exception as e:
         logger.exception(f"save_card_info save failed {path}:", e)
 
+    # 保存charListData.json（角色评分缓存）
+    waves_char_rank = await get_waves_char_rank(uid, save_data, True)
+    await save_char_list_cache(uid, waves_char_rank)
+
     if waves_map:
         waves_map["refresh_update"] = refresh_update
         waves_map["refresh_unchanged"] = refresh_unchanged
+
+
+async def save_char_list_cache(uid: str, waves_char_rank: Optional[List[WavesCharRank]]):
+    """保存角色评分数据到charListData.json供练度排行使用
+
+    只更新改动的角色，而不是重写整个文件。
+
+    Args:
+        uid: 用户uid
+        waves_char_rank: WavesCharRank列表（只包含改动的角色）
+    """
+    if not waves_char_rank:
+        return
+
+    try:
+        from ..wutheringwaves_rank.draw_rank_list_card import (
+            load_char_list_data,
+            save_char_list_data,
+        )
+
+        # 加载现有的角色评分数据
+        existing_char_list_data = await load_char_list_data(uid)
+        if not existing_char_list_data:
+            existing_char_list_data = {}
+
+        # 只更新改动的角色
+        for char_rank in waves_char_rank:
+            existing_char_list_data[str(char_rank.roleId)] = char_rank.score
+
+        # 保存更新后的数据
+        if existing_char_list_data:
+            await save_char_list_data(uid, existing_char_list_data)
+    except Exception as e:
+        logger.debug(f"保存charListData.json失败 uid={uid}: {e}")
 
 
 async def refresh_char(

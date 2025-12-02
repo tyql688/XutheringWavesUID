@@ -311,7 +311,7 @@ async def import_gachalogs(ev: Event, history_url: str, type: str, uid: str) -> 
         if "info" in data and "export_app" in data["info"]:
             if "Waves-Plugin" == data["info"]["export_app"]:
                 return WavesPluginGacha.model_validate(data).turn_wwuid_gacha()
-            elif "XutheringWavesUID" == data["info"]["export_app"]:
+            elif "XutheringWavesUID" == data["info"]["export_app"] or "WutheringWavesUID" == data["info"]["export_app"]:
                 return WWUIDGacha.model_validate(data)
         return None
 
@@ -319,8 +319,9 @@ async def import_gachalogs(ev: Event, history_url: str, type: str, uid: str) -> 
     if not wwuid_gacha:
         err_res = [
             "你当前导入的抽卡记录文件不支持, 目前支持的文件类型有:",
-            "1.XutheringWavesUID",
-            "2.Waves-Plugin",
+            "1.WutheringWavesUID",
+            "2.XutheringWavesUID",
+            "3.Waves-Plugin",
         ]
         return "\n".join(err_res)
 

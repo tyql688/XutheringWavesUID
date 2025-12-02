@@ -1,4 +1,5 @@
 import re
+import time
 from typing import Any, List
 
 from gsuid_core.bot import Bot
@@ -7,6 +8,7 @@ from gsuid_core.segment import MessageSegment
 from gsuid_core.sv import SV
 
 from ..utils.button import WavesButton
+from ..utils.cache import TimedCache
 from ..utils.database.models import WavesBind
 from ..utils.error_reply import ERROR_CODE, WAVES_CODE_103
 from ..wutheringwaves_config import PREFIX
@@ -23,6 +25,25 @@ sv_export_json_gacha_log = SV("waves导出抽卡记录")
 
 ERROR_MSG_NOTIFY = f"请给出正确的抽卡记录链接, 可发送【{PREFIX}抽卡帮助】"
 
+# 导入抽卡记录的冷却缓存（固定10秒）
+gacha_import_cache = TimedCache(timeout=10, maxsize=10000)
+
+
+def can_import_gacha(user_id: str, uid: str) -> int:
+    """检查是否可以导入抽卡记录，返回剩余冷却时间（秒），0表示可以导入"""
+    key = f"{user_id}_{uid}"
+    now = int(time.time())
+    time_stamp = gacha_import_cache.get(key)
+    if time_stamp and time_stamp > now:
+        return time_stamp - now
+    return 0
+
+
+def set_gacha_import_cache(user_id: str, uid: str):
+    """设置导入抽卡记录的缓存"""
+    key = f"{user_id}_{uid}"
+    gacha_import_cache.set(key, int(time.time()) + 10)
+
 
 @sv_get_gachalog_by_link.on_command(("导入抽卡链接", "导入抽卡记录"))
 async def get_gacha_log_by_link(bot: Bot, ev: Event):
@@ -31,6 +52,11 @@ async def get_gacha_log_by_link(bot: Bot, ev: Event):
     uid = await WavesBind.get_uid_by_game(ev.user_id, ev.bot_id)
     if not uid:
         return await bot.send(ERROR_CODE[WAVES_CODE_103])
+
+    # 检查冷却
+    remaining_time = can_import_gacha(ev.user_id, uid)
+    if remaining_time > 0:
+        return
 
     raw = ev.text.strip()
     if not raw:
@@ -68,6 +94,10 @@ async def get_gacha_log_by_link(bot: Bot, ev: Event):
         is_force = True
     await bot.send(f"UID{uid}开始执行[刷新抽卡记录],需要一定时间...请勿重复触发!")
     im = await save_gachalogs(ev, uid, record_id, is_force)
+
+    # 设置冷却缓存
+    set_gacha_import_cache(ev.user_id, uid)
+
     if "抽卡记录" in im:
         buttons: List[Any] = [WavesButton("查看抽卡记录", "抽卡记录")]
         await bot.send_option(im, buttons)
@@ -99,9 +129,19 @@ async def get_gacha_log_by_file(bot: Bot, ev: Event):
     if not uid:
         return await bot.send(ERROR_CODE[WAVES_CODE_103])
 
+    # 检查冷却
+    remaining_time = can_import_gacha(ev.user_id, uid)
+    if remaining_time > 0:
+        return
+
     if ev.file and ev.file_type:
         await bot.send("正在尝试导入抽卡记录中，请耐心等待……")
-        return await bot.send(await import_gachalogs(ev, ev.file, ev.file_type, uid))
+        im = await import_gachalogs(ev, ev.file, ev.file_type, uid)
+
+        # 设置冷却缓存
+        set_gacha_import_cache(ev.user_id, uid)
+
+        return await bot.send(im)
     else:
         return await bot.send("导入抽卡记录异常...")
 

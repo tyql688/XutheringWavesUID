@@ -57,6 +57,30 @@ from ..utils.waves_api import waves_api
 from ..wutheringwaves_abyss.draw_slash_card import COLOR_QUALITY
 from ..wutheringwaves_config import PREFIX, WutheringWavesConfig
 
+
+async def get_endless_rank_token_condition(ev):
+    """检查无尽排行的权限配置"""
+    # 群组 不限制token
+    WavesRankNoLimitGroup = WutheringWavesConfig.get_config(
+        "WavesRankNoLimitGroup"
+    ).data
+    if WavesRankNoLimitGroup and ev.group_id in WavesRankNoLimitGroup:
+        return True
+
+    # 群组 自定义的
+    WavesRankUseTokenGroup = WutheringWavesConfig.get_config(
+        "WavesRankUseTokenGroup"
+    ).data
+    # 全局 主人定义的
+    RankUseToken = WutheringWavesConfig.get_config("RankUseToken").data
+    if (
+        WavesRankUseTokenGroup and ev.group_id in WavesRankUseTokenGroup
+    ) or RankUseToken:
+        return True
+
+    return False
+
+
 TEXT_PATH = Path(__file__).parent / "texture2d"
 avatar_mask = Image.open(TEXT_PATH / "avatar_mask.png")
 default_avatar_char_id = "1505"
@@ -403,26 +427,28 @@ async def get_all_slash_rank_info(
         if not user.uid:
             continue
 
-        # 从本地读取该用户的无尽数据
-        try:
-            slash_data_path = Path(PLAYER_PATH / user.uid / "slashData.json")
-            if not slash_data_path.exists():
+        # 处理多个uid（用下划线连接）
+        for uid in user.uid.split("_"):
+            # 从本地读取该用户的无尽数据
+            try:
+                slash_data_path = Path(PLAYER_PATH / uid / "slashData.json")
+                if not slash_data_path.exists():
+                    continue
+
+                async with aiofiles.open(slash_data_path, mode="r", encoding="utf-8") as f:
+                    slash_data = json.loads(await f.read())
+
+                if not slash_data or not slash_data.get("isUnlock", False):
+                    continue
+
+                slash_data = SlashDetail.model_validate(slash_data)
+
+                rankInfo = SlashRankListInfo(user.user_id, uid, slash_data)
+                if rankInfo.score > 0:
+                    rankInfoList.append(rankInfo)
+            except Exception as e:
+                logger.debug(f"获取用户{uid}本地无尽数据失败: {e}")
                 continue
-
-            async with aiofiles.open(slash_data_path, mode="r", encoding="utf-8") as f:
-                slash_data = json.loads(await f.read())
-
-            if not slash_data or not slash_data.get("isUnlock", False):
-                continue
-
-            slash_data = SlashDetail.model_validate(slash_data)
-
-            rankInfo = SlashRankListInfo(user.user_id, user.uid, slash_data)
-            if rankInfo.score > 0:
-                rankInfoList.append(rankInfo)
-        except Exception as e:
-            logger.debug(f"获取用户{user.uid}本地无尽数据失败: {e}")
-            continue
 
     return rankInfoList
 
@@ -488,12 +514,19 @@ async def draw_slash_rank_list(bot: Bot, ev: Event):
     start_time = time.time()
     logger.info(f"[draw_slash_rank_list] start: {start_time}")
 
+    # 检查权限配置
+    tokenLimitFlag = await get_endless_rank_token_condition(ev)
+
     # 获取群里的所有用户
     users = await WavesBind.get_group_all_uid(ev.group_id)
     if not users:
         msg = []
         msg.append(f"[鸣潮] 群【{ev.group_id}】暂无无尽排行数据")
         msg.append(f"请使用【{PREFIX}无尽】后再使用此功能！")
+        if tokenLimitFlag:
+            msg.append(
+                f"当前排行开启了登录验证，请使用命令【{PREFIX}登录】登录后此功能！"
+            )
         msg.append("")
         return "\n".join(msg)
 
@@ -502,6 +535,10 @@ async def draw_slash_rank_list(bot: Bot, ev: Event):
         msg = []
         msg.append(f"[鸣潮] 群【{ev.group_id}】暂无无尽排行数据")
         msg.append(f"请使用【{PREFIX}无尽】后再使用此功能！")
+        if tokenLimitFlag:
+            msg.append(
+                f"当前排行开启了登录验证，请使用命令【{PREFIX}登录】登录后此功能！"
+            )
         msg.append("")
         return "\n".join(msg)
 

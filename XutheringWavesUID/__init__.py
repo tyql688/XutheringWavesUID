@@ -20,7 +20,7 @@ if PLAYERS_PATH.exists():
             try:
                 backup_item = BACKUP_PATH / item.name
                 if backup_item.exists():
-                    continue
+                    shutil.rmtree(backup_item)
                 shutil.move(str(item), str(backup_item))
                 logger.info(f"[XutheringWavesUID] 已移动错误的players文件夹到备份: {item.name}")
             except Exception as e:
