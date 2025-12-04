@@ -100,7 +100,7 @@ async def get_gacha_log_by_link(bot: Bot, ev: Event):
             
             # 导入合并后的数据
             merged_json_str = json.dumps(merged_data, ensure_ascii=False)
-            im = await import_gachalogs(ev, merged_json_str, "json", uid)
+            im = await import_gachalogs(ev, merged_json_str, "json", uid, force_overwrite=True)
             return await bot.send(im)
             
         except Exception as e:

@@ -146,6 +146,12 @@ async def get_new_gachalog_for_file(
     new = {}
     new_count = {}
 
+    if str(full_data) == str(import_data):
+        for gacha_name, logs in full_data.items():
+            new[gacha_name] = list(logs)
+            new_count[gacha_name] = len(logs)
+        return None, new, new_count
+
     for cardPoolType, item in import_data.items():
         item: List[GachaLog]
         if cardPoolType not in gacha_type_meta_data:
@@ -178,6 +184,7 @@ async def save_gachalogs(
     record_id: str,
     is_force: bool = False,
     import_data: Optional[Dict[str, List[GachaLog]]] = None,
+    force_overwrite: bool = False,
 ) -> str:
     path = PLAYER_PATH / str(uid)
     if not path.exists():
@@ -235,9 +242,13 @@ async def save_gachalogs(
         code, gachalogs_new, gachalogs_count_add = await get_new_gachalog(
             uid, record_id, gachalogs_history, is_force
         )
-    else:
+    elif not force_overwrite:
         code, gachalogs_new, gachalogs_count_add = await get_new_gachalog_for_file(
             gachalogs_history, import_data  # type: ignore
+        )
+    else:
+        code, gachalogs_new, gachalogs_count_add = await get_new_gachalog_for_file(
+            import_data, import_data  # type: ignore
         )
 
     if isinstance(code, str) or not gachalogs_new:
@@ -294,7 +305,7 @@ async def save_record_id(user_id, bot_id, uid, record_id):
         await WavesUser.insert_data(user_id, bot_id, record_id=record_id, uid=uid)
 
 
-async def import_gachalogs(ev: Event, history_url: str, type: str, uid: str) -> str:
+async def import_gachalogs(ev: Event, history_url: str, type: str, uid: str, force_overwrite = False) -> str:
     history_data: Dict = {}
     if type == "json":
         history_data = json.loads(history_url)
@@ -341,7 +352,7 @@ async def import_gachalogs(ev: Event, history_url: str, type: str, uid: str) -> 
                 continue
         import_data[gacha_name].append(GachaLog(**item.dict()))
 
-    res = await save_gachalogs(ev, uid, "", import_data=import_data)
+    res = await save_gachalogs(ev, uid, "", import_data=import_data, force_overwrite=force_overwrite)
     return res
 
 

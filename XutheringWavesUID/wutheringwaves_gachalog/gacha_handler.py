@@ -29,6 +29,21 @@ FILLER_ITEM = {
     "count": 1
 }
 
+
+def _time_to_timestamp(time_str: str) -> float:
+    if not time_str:
+        return float('-inf')
+    try:
+        return datetime.strptime(time_str, "%Y-%m-%d %H:%M:%S").timestamp()
+    except ValueError:
+        return float('-inf')
+
+
+def _sort_key_by_time(item: dict, idx_field: str = "_internal_idx"):
+    ts = _time_to_timestamp(item.get("time", ""))
+    order_idx = item.get(idx_field, float('inf'))
+    return (-ts, order_idx)
+
 def generate_random_string(length, chars):
     return ''.join(random.choice(chars) for _ in range(length))
 
@@ -163,10 +178,15 @@ def merge_gacha_data(original_data: dict, latest_data: dict) -> dict:
     
     for pool_id in sorted(list(all_pools)):
         O_all = sorted(
-            [x for x in original_list if str(x.get('cardPoolType')) == str(pool_id)], 
-            key=lambda x: (x.get('time', ''), -x.get('_internal_idx', 0))
+            [x for x in original_list if str(x.get('cardPoolType')) == str(pool_id)],
+            key=_sort_key_by_time,
         )
-        L_5s = sorted([x for x in latest_5stars if str(x.get('cardPoolType')) == str(pool_id)], key=lambda x: x.get('time', ''))
+        O_all.reverse()
+        L_5s = sorted(
+            [x for x in latest_5stars if str(x.get('cardPoolType')) == str(pool_id)],
+            key=_sort_key_by_time,
+        )
+        L_5s.reverse()
         
         O_5s = [x for x in O_all if x.get('qualityLevel') == 5]
         
@@ -287,11 +307,10 @@ def merge_gacha_data(original_data: dict, latest_data: dict) -> dict:
 
         merged_list.extend(pool_merged_items)
 
+    merged_list.sort(key=_sort_key_by_time)
     for item in merged_list:
         if '_internal_idx' in item:
             del item['_internal_idx']
-
-    merged_list.sort(key=lambda x: x.get('time', ''), reverse=True)
     logger.success(f"[GachaHandler] 合并完成，共 {len(merged_list)} 条记录")
     
     return {
