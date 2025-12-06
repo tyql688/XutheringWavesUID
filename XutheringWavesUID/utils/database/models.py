@@ -21,6 +21,7 @@ exec_list.extend(
         'ALTER TABLE WavesUser ADD COLUMN bbs_sign_switch TEXT DEFAULT "off"',
         'ALTER TABLE WavesUser ADD COLUMN bat TEXT DEFAULT ""',
         'ALTER TABLE WavesUser ADD COLUMN did TEXT DEFAULT ""',
+        'ALTER TABLE WavesUser ADD COLUMN pgr_uid TEXT DEFAULT ""',
         'ALTER TABLE WavesBind ADD COLUMN pgr_uid TEXT DEFAULT ""',
     ]
 )
@@ -112,6 +113,7 @@ class WavesUser(User, table=True):
     __table_args__: Dict[str, Any] = {"extend_existing": True}
     cookie: str = Field(default="", title="Cookie")
     uid: str = Field(default=None, title="鸣潮UID")
+    pgr_uid: Optional[str] = Field(default=None, title="战双UID")
     record_id: Optional[str] = Field(default=None, title="鸣潮记录ID")
     platform: str = Field(default="", title="ck平台")
     stamina_bg_value: str = Field(default="", title="体力背景")

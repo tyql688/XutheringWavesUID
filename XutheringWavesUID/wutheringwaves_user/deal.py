@@ -64,6 +64,7 @@ async def add_cookie(ev: Event, ck: str, did: str) -> str:
                         "cookie": ck,
                         "status": "",
                         "platform": platform,
+                        "pgr_uid": user.pgr_uid,
                     },
                 )
             else:
@@ -73,6 +74,7 @@ async def add_cookie(ev: Event, ck: str, did: str) -> str:
                     cookie=ck,
                     uid=data.roleId,
                     platform=platform,
+                    pgr_uid=None,
                 )
 
             # 更新bat
@@ -104,19 +106,20 @@ async def add_cookie(ev: Event, ck: str, did: str) -> str:
             if data.gameId != PGR_GAME_ID:
                 continue
             pgr_user = await WavesUser.get_user_by_attr(
-                ev.user_id, ev.bot_id, "uid", data.roleId
+                ev.user_id, ev.bot_id, "pgr_uid", data.roleId
             )
             if pgr_user:
                 await WavesUser.update_data_by_data(
                     select_data={
                         "user_id": ev.user_id,
                         "bot_id": ev.bot_id,
-                        "uid": data.roleId,
+                        "pgr_uid": data.roleId,
                     },
                     update_data={
                         "cookie": ck,
                         "status": "",
                         "platform": platform,
+                        "pgr_uid": data.roleId,
                         "did": did,
                     },
                 )
@@ -126,6 +129,7 @@ async def add_cookie(ev: Event, ck: str, did: str) -> str:
                     ev.bot_id,
                     cookie=ck,
                     uid=data.roleId,
+                    pgr_uid=data.roleId,
                     platform=platform,
                     did=did,
                 )
@@ -135,7 +139,7 @@ async def add_cookie(ev: Event, ck: str, did: str) -> str:
                 ev.bot_id,
                 data.roleId,
                 ev.group_id,
-                lenth_limit=9,
+                lenth_limit=None,
                 game_name="pgr",
             )
             if res == 0 or res == -2:
@@ -201,7 +205,7 @@ async def refresh_bind(ev: Event) -> str:
                     ev.bot_id,
                     data.roleId,
                     ev.group_id,
-                    lenth_limit=9,
+                    lenth_limit=None,
                     game_name="pgr",
                 )
                 if res == 0 or res == -2:
