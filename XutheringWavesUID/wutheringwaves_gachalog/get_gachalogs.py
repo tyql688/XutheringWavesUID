@@ -260,6 +260,23 @@ async def save_gachalogs(
     # 获取当前时间
     current_time = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
 
+    # 检查并修正时间降序
+    for gacha_name in gacha_type_meta_data.keys():
+        logs = gachalogs_new.get(gacha_name, [])
+        if len(logs) > 1:
+            # 从末尾倒着检查时间顺序
+            for i in range(len(logs) - 1, 0, -1):
+                time_current = datetime.strptime(logs[i].time, "%Y-%m-%d %H:%M:%S")
+                time_prev = datetime.strptime(logs[i - 1].time, "%Y-%m-%d %H:%M:%S")
+
+                # 如果第 i-1 个的时间小于第 i 个，说明顺序不对，舍弃 i-1 及之前的所有记录
+                if time_prev < time_current:
+                    logger.warning(
+                        f"[{gacha_name}] 发现时间顺序异常，舍弃索引 {i-1} 及之前的 {i} 条记录"
+                    )
+                    gachalogs_new[gacha_name] = logs[i:]
+                    break
+
     # 初始化最后保存的数据
     result = {"uid": uid, "data_time": current_time}
 
