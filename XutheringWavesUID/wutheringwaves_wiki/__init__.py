@@ -15,8 +15,8 @@ from .draw_tower import draw_tower_challenge_img, draw_slash_challenge_img
 
 sv_waves_guide = SV("鸣潮攻略")
 sv_waves_wiki = SV("鸣潮wiki")
-sv_waves_tower = SV("waves查询深塔信息", priority=10)
-sv_waves_slash_info = SV("waves查询海墟信息", priority=10)
+sv_waves_tower = SV("waves查询深塔信息", priority=4)
+sv_waves_slash_info = SV("waves查询海墟信息", priority=4)
 
 
 @sv_waves_guide.on_regex(
