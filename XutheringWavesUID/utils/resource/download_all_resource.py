@@ -126,6 +126,7 @@ async def download_all_resource(force: bool = False):
             "如下载失败原因为 Permission Denied, 请手动删除 ./XutheringWavesUID/utils/waves_build 和 ./XutheringWavesUID/utils/map/waves_build 文件夹后重试，或尝试 强制下载全部资源"
         )
 
+def reload_all_modules():
     from ..safety import reload_safety_module
     from ..calculate import reload_calculate_module
 

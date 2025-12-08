@@ -7,7 +7,7 @@ import os
 import hashlib
 from pathlib import Path
 
-from ..utils.resource.download_all_resource import download_all_resource, BUILD_PATH, BUILD_TEMP, MAP_BUILD_PATH, MAP_BUILD_TEMP
+from ..utils.resource.download_all_resource import (download_all_resource, reload_all_modules, BUILD_PATH, BUILD_TEMP, MAP_BUILD_PATH, MAP_BUILD_TEMP)
 
 
 def get_dir_hash(dir_path):
@@ -47,6 +47,7 @@ async def send_download_resource_msg(bot: Bot, ev: Event):
     await download_all_resource(force="强制" in ev.raw_text)
     copy_if_different(BUILD_TEMP, BUILD_PATH, "安全工具资源")
     copy_if_different(MAP_BUILD_TEMP, MAP_BUILD_PATH, "伤害计算资源")
+    reload_all_modules()
     await bot.send("[鸣潮] 下载完成！")
 
 
@@ -55,4 +56,5 @@ async def startup():
     await download_all_resource()
     copy_if_different(BUILD_TEMP, BUILD_PATH, "安全工具资源")
     copy_if_different(MAP_BUILD_TEMP, MAP_BUILD_PATH, "伤害计算资源")
+    reload_all_modules()
     logger.info("[鸣潮] 资源下载完成！完成启动！")
