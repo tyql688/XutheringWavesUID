@@ -76,7 +76,12 @@ def get_target_package():
 
 PLATFORM = get_target_package()
 
-async def download_all_resource():
+async def download_all_resource(force: bool = False):
+    if force:
+        import shutil
+        shutil.rmtree(BUILD_PATH, ignore_errors=True)
+        shutil.rmtree(MAP_BUILD_PATH, ignore_errors=True)
+    
     await download_all_file(
         "XutheringWavesUID",
         {
@@ -109,7 +114,7 @@ async def download_all_resource():
     )
     
     if "win" in PLATFORM:
-        logger.warning("如下载失败原因为 Permission Denied, 请尝试core关闭以后手动重新启动core")
+        logger.warning("如下载失败原因为 Permission Denied, 请手动删除 ./XutheringWavesUID/utils/waves_build 和 ./XutheringWavesUID/utils/map/waves_build 文件夹后重试，或尝试 强制下载全部资源")
     
     from ..calculate import reload_calculate_module
     from ..safety import reload_safety_module
