@@ -151,6 +151,7 @@ async def draw_gacha_rank_card(bot, ev: Event) -> Union[str, bytes]:
 
     # 按加权抽数排序（分数越低越欧，反向排序则是非）
     rankInfoList.sort(key=lambda i: i.weighted, reverse=sort_reverse)
+    rankInfoList_with_id = list(enumerate(rankInfoList, start=1))
 
     # 获取自己的排名
     self_uid = None
@@ -162,7 +163,7 @@ async def draw_gacha_rank_card(bot, ev: Event) -> Union[str, bytes]:
             rankId, rankInfo = next(
                 (
                     (rankId, rankInfo)
-                    for rankId, rankInfo in enumerate(rankInfoList, start=1)
+                    for rankId, rankInfo in rankInfoList_with_id
                     if rankInfo.uid == self_uid and ev.user_id == rankInfo.user_id
                 ),
                 (None, None),
@@ -171,9 +172,9 @@ async def draw_gacha_rank_card(bot, ev: Event) -> Union[str, bytes]:
         pass
 
     rank_length = 20  # 显示前20条
-    rankInfoList_display = rankInfoList[:rank_length]
+    rankInfoList_display = rankInfoList_with_id[:rank_length]
     if rankId and rankInfo and rankId > rank_length:
-        rankInfoList_display.append(rankInfo)
+        rankInfoList_display.append((rankId, rankInfo))
 
     width = 1000
     text_bar_height = 130
@@ -237,7 +238,7 @@ async def draw_gacha_rank_card(bot, ev: Event) -> Union[str, bytes]:
     card_img.paste(char_mask_temp, (0, 0), char_mask_temp)
 
     # 获取头像
-    tasks = [get_avatar(rank.user_id) for rank in rankInfoList_display]
+    tasks = [get_avatar(rank_info.user_id) for _, rank_info in rankInfoList_display]
     results = await asyncio.gather(*tasks)
 
     # 导入必要的图片资源 - 使用bar2.png，不对其进行resize
@@ -245,7 +246,7 @@ async def draw_gacha_rank_card(bot, ev: Event) -> Union[str, bytes]:
 
     # 绘制排行条目
     for rank_temp_index, temp in enumerate(zip(rankInfoList_display, results)):
-        rankInfo = temp[0]
+        rank_id, rankInfo = temp[0]
         role_avatar = temp[1]
         y_pos = header_height + 130 + rank_temp_index * item_spacing
 
@@ -255,7 +256,6 @@ async def draw_gacha_rank_card(bot, ev: Event) -> Union[str, bytes]:
         role_bg_draw = ImageDraw.Draw(role_bg)
 
         # 排名
-        rank_id = rank_temp_index + 1
         rank_color = (54, 54, 54)
         if rank_id == 1:
             rank_color = (255, 0, 0)
