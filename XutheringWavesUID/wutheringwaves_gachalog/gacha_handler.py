@@ -86,7 +86,7 @@ async def fetch_mcgf_data(uid: str):
         "Sec-Fetch-Site": "cross-site",
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Dest": "empty",
-        "Referer": f"https://servicewechat.com/{"wx"}{"715e221"}{"43bcda767"}/36/page-frame.html",
+        "Referer": "https://servicewechat.com/wx715e22143bcda767/36/page-frame.html",
         "Accept-Language": "zh-CN,zh;q=0.9",
         "WWUIDMSG": "We welcome data sharing. We can also provide method to import wwuid gacha data into your mini program.",
     }
