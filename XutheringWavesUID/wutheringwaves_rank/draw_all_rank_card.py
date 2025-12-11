@@ -205,8 +205,10 @@ async def draw_all_rank_card(bot: Bot, ev: Event, char: str, rank_type: str, pag
     bot_color = copy.deepcopy(BOT_COLOR)
     bot_color_map = {}
     avg_num = 0
+    damage_name = ""
     for index, temp in enumerate(zip(rankInfoList.data.details, results)):
         rank: RankDetail = temp[0]
+        damage_name = rank.expected_name
         role_avatar: Image.Image = temp[1]
         bar_bg = bar.copy()
         bar_star_draw = ImageDraw.Draw(bar_bg)
@@ -371,7 +373,7 @@ async def draw_all_rank_card(bot: Bot, ev: Event, char: str, rank_type: str, pag
     title_draw.text((600, 375), "平均声骸分数", SPECIAL_GOLD, waves_font_20, "mm")
 
     title_draw.text((790, 335), f"{avg_damage}", "white", waves_font_44, "mm")
-    title_draw.text((790, 375), "平均伤害", SPECIAL_GOLD, waves_font_20, "mm")
+    title_draw.text((790, 375), "平均治疗量" if "治疗" in damage_name else "平均伤害", SPECIAL_GOLD, waves_font_20, "mm")
 
     if char_id in SPECIAL_CHAR_NAME:
         char_name = SPECIAL_CHAR_NAME[char_id]

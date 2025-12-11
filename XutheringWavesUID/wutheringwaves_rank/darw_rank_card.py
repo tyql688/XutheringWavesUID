@@ -501,7 +501,7 @@ async def draw_rank_img(bot: Bot, ev: Event, char: str, rank_type: str) -> Union
 
     if damage_title != "无":
         title_draw.text((390, 335), f"{avg_damage}", "white", waves_font_44, "mm")
-        title_draw.text((390, 375), "平均伤害", SPECIAL_GOLD, waves_font_20, "mm")
+        title_draw.text((390, 375), "平均治疗量" if "治疗" in damage_title else "平均伤害", SPECIAL_GOLD, waves_font_20, "mm")
 
     if char_id in SPECIAL_CHAR_NAME:
         char_name = SPECIAL_CHAR_NAME[char_id]
