@@ -3,6 +3,7 @@ import random
 import string
 import traceback
 from datetime import datetime, timedelta
+from typing import Optional
 
 import aiohttp
 from aiohttp import TCPConnector
@@ -61,6 +62,12 @@ def get_timestamp_minus_1s(time_str):
         return dt_new.strftime("%Y-%m-%d %H:%M:%S")
     except ValueError:
         return time_str
+
+
+def get_filler_time(current_time: str, prev_five_star_time: Optional[str] = None) -> str:
+    if prev_five_star_time and prev_five_star_time == current_time:
+        return current_time
+    return get_timestamp_minus_1s(current_time)
 
 
 async def fetch_mcgf_data(uid: str):
@@ -206,9 +213,10 @@ def merge_gacha_data(original_data: dict, latest_data: dict) -> dict:
 
         if not O_5s:
             logger.debug(f"[GachaHandler] Pool {pool_id}: 无本地五星记录，重建所有历史")
+            prev_five_star_time: Optional[str] = None
             for cp in L_5s:
                 filler_count = cp["draw_total"] - 1
-                filler_time = get_timestamp_minus_1s(cp["time"])
+                filler_time = get_filler_time(cp["time"], prev_five_star_time)
                 for _ in range(filler_count):
                     f = FILLER_ITEM.copy()
                     f["cardPoolType"] = str(pool_id)
@@ -224,6 +232,7 @@ def merge_gacha_data(original_data: dict, latest_data: dict) -> dict:
                     "time": cp["time"],
                 }
                 pool_merged_items.append(cp_item)
+                prev_five_star_time = cp["time"]
             pool_merged_items.extend(O_all)
 
         else:
@@ -247,9 +256,10 @@ def merge_gacha_data(original_data: dict, latest_data: dict) -> dict:
 
             if match_idx is None:
                 logger.warning(f"[GachaHandler] Pool {pool_id}: 未找到五星匹配点，执行分离合并")
+                prev_five_star_time: Optional[str] = None
                 for cp in L_5s:
                     filler_count = cp["draw_total"] - 1
-                    filler_time = get_timestamp_minus_1s(cp["time"])
+                    filler_time = get_filler_time(cp["time"], prev_five_star_time)
                     for _ in range(filler_count):
                         f = FILLER_ITEM.copy()
                         f["cardPoolType"] = str(pool_id)
@@ -265,14 +275,16 @@ def merge_gacha_data(original_data: dict, latest_data: dict) -> dict:
                         "time": cp["time"],
                     }
                     pool_merged_items.append(cp_item)
+                    prev_five_star_time = cp["time"]
                 pool_merged_items.extend(O_all)
 
             else:
                 logger.debug(f"[GachaHandler] Pool {pool_id}: 在索引 {match_idx} 处对其，重建之前历史")
+                prev_five_star_time: Optional[str] = None
                 for i in range(match_idx):
                     cp = L_5s[i]
                     filler_count = cp["draw_total"] - 1
-                    filler_time = get_timestamp_minus_1s(cp["time"])
+                    filler_time = get_filler_time(cp["time"], prev_five_star_time)
                     for _ in range(filler_count):
                         f = FILLER_ITEM.copy()
                         f["cardPoolType"] = str(pool_id)
@@ -288,6 +300,7 @@ def merge_gacha_data(original_data: dict, latest_data: dict) -> dict:
                         "time": cp["time"],
                     }
                     pool_merged_items.append(cp_item)
+                    prev_five_star_time = cp["time"]
 
                 cp_x = L_5s[match_idx]
 
@@ -308,7 +321,7 @@ def merge_gacha_data(original_data: dict, latest_data: dict) -> dict:
                 )
 
                 if diff > 0:
-                    filler_time = get_timestamp_minus_1s(x["time"])
+                    filler_time = get_filler_time(x["time"], prev_five_star_time)
                     fillers = []
                     for _ in range(diff):
                         f = FILLER_ITEM.copy()
