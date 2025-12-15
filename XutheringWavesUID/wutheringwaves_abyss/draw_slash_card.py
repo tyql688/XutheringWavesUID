@@ -229,7 +229,7 @@ async def draw_slash_img(ev: Event, uid: str, user_id: str) -> Union[bytes, str]
             # 挑战名称
             temp_bar_draw.text(
                 (140, 45),
-                f"{challenge.challengeName}" + f"第{get_slash_period_number()}期" if challenge.challengeId == 12 else "",
+                f"{challenge.challengeName}" + (f" 第{get_slash_period_number()}期" if challenge.challengeId == 12 else ""),
                 "white",
                 waves_font_40,
             )
