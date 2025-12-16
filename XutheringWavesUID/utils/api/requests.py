@@ -922,7 +922,7 @@ class WavesApi:
                     except Exception:
                         pass
 
-                logger.debug(f"url:[{url}] params:[{params}] headers:[{header}] data:[{req_data}] raw_data:{raw_data}")
+                # logger.debug(f"url:[{url}] params:[{params}] headers:[{header}] data:[{req_data}] raw_data:{raw_data}")
                 # 统一解析为 KuroApiResp
                 return KuroApiResp[Any].model_validate(raw_data)
 

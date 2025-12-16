@@ -43,6 +43,8 @@ from ..utils.api.model import (
     AccountBaseInfo,
 )
 from ..utils.api.wwapi import ONE_RANK_URL, OneRankRequest, OneRankResponse
+from ..utils.damage.abstract import DamageRankRegister
+from ..utils.damage.utils import comma_separated_number
 from ..utils.calculate import (
     get_calc_map,
     get_max_score,
@@ -182,7 +184,7 @@ async def get_one_rank(item: OneRankRequest) -> Optional[OneRankResponse]:
                 },
                 timeout=httpx.Timeout(10),
             )
-            # logger.debug(f"获取排行: {res.text}")
+            logger.debug(f"获取排行: {res.text}")
             if res.status_code == 200:
                 return OneRankResponse.model_validate(res.json())
         except Exception as e:
@@ -217,6 +219,7 @@ async def ph_card_draw(
     ph_1 = Image.open(TEXT_PATH / "ph_1.png")
     #  phantom_sum_value = {}
     calc = WuWaCalc(role_detail, enemy_detail)
+    phantom_score = 0  # 初始化声骸评分
     if role_detail.phantomData and role_detail.phantomData.equipPhantomList:
         equipPhantomList = role_detail.phantomData.equipPhantomList
         phantom_score = 0
@@ -367,7 +370,7 @@ async def ph_card_draw(
             phantom_temp_text.text((50, 90), f"{change_command}", SPECIAL_GOLD, waves_font_18, "lm")
 
     # img.paste(phantom_temp, (0, 1320 + jineng_len), phantom_temp)
-    return calc, phantom_temp
+    return calc, phantom_temp, phantom_score
 
 
 async def get_role_need(
@@ -665,15 +668,10 @@ async def draw_char_detail_img(
         except Exception as e:
             logger.exception("角色数据转换错误", e)
             role_detail = temp
-    else:
-        if not is_limit_query:
-            # 非极限查询时，获取评分排名
-            oneRank = await get_one_rank(OneRankRequest(char_id=int(char_id), waves_id=uid))
-            if oneRank and len(oneRank.data) > 0:
-                dd_len += 60 * 2
+
 
     # 声骸
-    calc, phantom_temp = await ph_card_draw(ph_sum_value, role_detail, isDraw, change_command, enemy_detail)
+    calc, phantom_temp, phantom_score = await ph_card_draw(ph_sum_value, role_detail, isDraw, change_command, enemy_detail)
     calc.role_card = calc.enhance_summation_card_value(calc.phantom_card)
 
     damage_calc_img = None
@@ -723,6 +721,30 @@ async def draw_char_detail_img(
 
         dd_len += damage_calc_img.size[1]
 
+    if not is_limit_query:
+        # 非极限查询时，获取评分排名
+        rank_expected_damage = None
+        rankDetail = DamageRankRegister.find_class(char_id)
+        if rankDetail and role_detail.phantomData and role_detail.phantomData.equipPhantomList:
+            try:
+                calc.damageAttribute = calc.card_sort_map_to_attribute(calc.role_card)
+                _, rank_expected_damage_str = rankDetail["func"](calc.damageAttribute, role_detail)
+                rank_expected_damage = comma_separated_number(rank_expected_damage_str)
+            except Exception as e:
+                logger.warning(f"获取排行伤害失败: {e}")
+                rank_expected_damage = None
+
+        oneRank = await get_one_rank(
+            OneRankRequest(
+                char_id=int(char_id),
+                waves_id=uid,
+                phantom_score=phantom_score if phantom_score > 0 else None,
+                expected_damage=rank_expected_damage,
+            )
+        )
+        if oneRank and len(oneRank.data) > 0:
+            dd_len += 60 * 2
+            
     # 创建背景
     img = await get_card_bg(1200, 1250 + echo_list + ph_sum_value + jineng_len + dd_len, "bg3")
     # 固定位置
